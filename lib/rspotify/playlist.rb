@@ -69,9 +69,24 @@ module RSpotify
     #           playlist = RSpotify::Playlist.find_by_id('00wHcTN0zQiun4xri9pmvX')
     #           playlist.class #=> RSpotify::Playlist
     #           playlist.name  #=> "Movie Soundtrack Masterpieces"
-    def self.find_by_id(id, market: nil)
+    def self.find_by_id(id, market: nil, fields: nil)
+      # Fields explanation from https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlist  :
+      # Filters for the query: a comma-separated list of the fields to return. If omitted, all fields are returned. 
+      
+      # For example, to get just the playlist''s description and URI: fields=description,uri. 
+      # A dot separator can be used to specify non-reoccurring fields, 
+      # while parentheses can be used to specify reoccurring fields within objects. 
+      # For example, to get just the added date and user ID of the adder: fields=tracks.items(added_at,added_by.id). 
+      # Use multiple parentheses to drill down into nested objects, for example: fields=tracks.items(track(name,href,album(name,href))). 
+      # Fields can be excluded by prefixing them with an exclamation mark, for example: fields=tracks.items(track(name,href,album(!name,href)))
+
+      # Example value:
+      # "items(added_by.id,track(name,href,album(name,href)))"
+
       url = "playlists/#{id}"
-      url << "?market=#{market}" if market
+      url << "?" if market || fields
+      url << "market=#{market}&" if market
+      url << "fields=#{fields}&" if fields
       response = RSpotify.resolve_auth_request(nil, url)
       return response if RSpotify.raw_response
       Playlist.new response
