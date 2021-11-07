@@ -116,7 +116,7 @@ module RSpotify
       @name          = options['name']
       @public        = options['public']
       @snapshot_id   = options['snapshot_id']
-      @total         = options['tracks']['total']
+      @total         = options.dig('tracks', 'total')
 
       @owner = if options['owner']
         User.new options['owner']
