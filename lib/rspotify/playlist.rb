@@ -279,6 +279,8 @@ module RSpotify
       necessary_fields = 'items(track(added_at,added_by,is_local)),'
 
       url = "playlists/#{@id}/tracks?"
+      url << "limit=#{limit}&" if limit
+      url << "offset=#{offset}&" if offset
       url << "market=#{market}&" if market
       url << "fields=#{necessary_fields + fields}" if fields
 
