@@ -35,7 +35,7 @@ module RSpotify
         response['audio_features'].map { |i| i.nil? ? nil : AudioFeatures.new(i) }
       when String
         url = "audio-features/#{ids}"
-        response = RSpotify.get(url)
+        response = RSpotify.get(url, proxy)
         return response if RSpotify.raw_response
 
         AudioFeatures.new response
