@@ -25,11 +25,11 @@ module RSpotify
     # @example
     #           audio_features = RSpotify::AudioFeatures.find('1zHlj4dQ8ZAtrayhuDDmkY')
     #           audio_features = RSpotify::AudioFeatures.find(['1zHlj4dQ8ZAtrayhuDDmkY', '7ouMYWpwJ422jRcDASZB7P', '4VqPOruhp5EdPBeR92t6lQ'])
-    def self.find(ids)
+    def self.find(ids, proxy: nil)
       case ids
       when Array
         url = "audio-features?ids=#{ids.join(',')}"
-        response = RSpotify.get(url)
+        response = RSpotify.get(url, proxy)
         return response if RSpotify.raw_response
 
         response['audio_features'].map { |i| i.nil? ? nil : AudioFeatures.new(i) }
