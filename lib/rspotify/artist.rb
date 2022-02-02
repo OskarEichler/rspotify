@@ -39,8 +39,8 @@ module RSpotify
     #           artists = RSpotify::Artist.search('Arctic', market: { from: user })
     #
     #           RSpotify::Artist.search('Arctic').total #=> 86
-    def self.search(query, limit: 20, offset: 0, market: nil)
-      super(query, 'artist', limit: limit, offset: offset, market: market)
+    def self.search(query, limit: 20, offset: 0, market: nil, proxy: nil)
+      super(query, 'artist', limit: limit, offset: offset, market: market, proxy: proxy)
     end
 
     def initialize(options = {})
@@ -66,13 +66,13 @@ module RSpotify
     #           artist.albums
     #           artist.albums(album_type: 'single,compilation')
     #           artist.albums(limit: 50, country: 'US')
-    def albums(limit: 20, offset: 0, **filters)
+    def albums(limit: 20, offset: 0, **filters, proxy: proxy)
       url = "artists/#{@id}/albums?limit=#{limit}&offset=#{offset}"
       filters.each do |filter_name, filter_value|
         url << "&#{filter_name}=#{filter_value}"
       end
 
-      response = RSpotify.get(url)
+      response = RSpotify.get(url, proxy)
       return response if RSpotify.raw_response
       response['items'].map { |i| Album.new i }
     end
@@ -87,9 +87,9 @@ module RSpotify
     #
     #           related_artists.size       #=> 20
     #           related_artists.first.name #=> "Miles Kane"
-    def related_artists
+    def related_artists(proxy: nil)
       return @related_artists unless @related_artists.nil? || RSpotify.raw_response
-      response = RSpotify.get("artists/#{@id}/related-artists")
+      response = RSpotify.get("artists/#{@id}/related-artists", proxy)
 
       return response if RSpotify.raw_response
       @related_artists = response['artists'].map { |a| Artist.new a }
@@ -105,9 +105,9 @@ module RSpotify
     #           top_tracks.class       #=> Array
     #           top_tracks.size        #=> 10
     #           top_tracks.first.class #=> RSpotify::Track
-    def top_tracks(country)
+    def top_tracks(country, proxy: nil)
       return @top_tracks[country] unless @top_tracks[country].nil? || RSpotify.raw_response
-      response = RSpotify.get("artists/#{@id}/top-tracks?country=#{country}")
+      response = RSpotify.get("artists/#{@id}/top-tracks?country=#{country}", proxy)
 
       return response if RSpotify.raw_response
       @top_tracks[country] = response['tracks'].map { |t| Track.new t }
