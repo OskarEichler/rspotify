@@ -30,8 +30,8 @@ module RSpotify
     #           albums = RSpotify::Album.find(ids)
     #           albums.class       #=> Array
     #           albums.first.class #=> RSpotify::Album
-    def self.find(ids, market: nil)
-      super(ids, 'album', market: market)
+    def self.find(ids, market: nil, proxy: nil)
+      super(ids, 'album', market: market, proxy: proxy)
     end
 
     # Get a list of new album releases featured in Spotify (shown, for example, on a Spotify player’s “Browse” tab).
@@ -44,10 +44,10 @@ module RSpotify
     # @example
     #           albums = RSpotify::Album.new_releases
     #           albums = RSpotify::Album.new_releases(country: 'US', limit: 10)
-    def self.new_releases(limit: 20, offset: 0, country: nil)
+    def self.new_releases(limit: 20, offset: 0, country: nil, proxy: nil)
       url = "browse/new-releases?limit=#{limit}&offset=#{offset}"
       url << "&country=#{country}" if country
-      response = RSpotify.get(url)
+      response = RSpotify.get(url, proxy)
 
       return response if RSpotify.raw_response
       response['albums']['items'].map { |i| Album.new i }
@@ -67,8 +67,8 @@ module RSpotify
     #           albums = RSpotify::Album.search('AM', market: { from: user })
     #
     #           RSpotify::Album.search('AM').total #=> 9374
-    def self.search(query, limit: 20, offset: 0, market: nil)
-      super(query, 'album', limit: limit, offset: offset, market: market)
+    def self.search(query, limit: 20, offset: 0, market: nil, proxy: nil)
+      super(query, 'album', limit: limit, offset: offset, market: market, proxy: proxy)
     end
 
     def initialize(options = {})
@@ -108,7 +108,7 @@ module RSpotify
     # @example
     #           album = RSpotify::Album.find('41vPD50kQ7JeamkxQW7Vuy')
     #           album.tracks.first.name #=> "Do I Wanna Know?"
-    def tracks(limit: 50, offset: 0, market: nil)
+    def tracks(limit: 50, offset: 0, market: nil, proxy: nil)
       last_track = offset + limit - 1
       if @tracks_cache && last_track < 50 && !RSpotify.raw_response
         return @tracks_cache[offset..last_track]
@@ -116,7 +116,7 @@ module RSpotify
 
       url = "albums/#{@id}/tracks?limit=#{limit}&offset=#{offset}"
       url << "&market=#{market}" if market
-      response = RSpotify.get(url)
+      response = RSpotify.get(url, proxy)
       json = RSpotify.raw_response ? JSON.parse(response) : response
 
       tracks = json['items'].map { |i| Track.new i }
