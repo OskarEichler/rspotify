@@ -15,42 +15,35 @@ module RSpotify
     attr_accessor :raw_response
     attr_reader :client_token
 
-    # Authenticates access to restricted data. Requires {https://developer.spotify.com/my-applications user credentials}
-    #
-    # @param client_id [String]
-    # @param client_secret [String]
-    #
-    # @example
-    #           RSpotify.authenticate("<your_client_id>", "<your_client_secret>")
-    #
-    #           playlist = RSpotify::Playlist.find('wizzler', '00wHcTN0zQiun4xri9pmvX')
-    #           playlist.name #=> "Movie Soundtrack Masterpieces"
-    def authenticate(client_id, client_secret)
+    def authenticate(client_id, client_secret, proxy = nil)
       @client_id, @client_secret = client_id, client_secret
-      request_body = { grant_type: 'client_credentials' }
-      response = RestClient.post(TOKEN_URI, request_body, auth_header)
+      response = RestClient::Request.execute(
+        open_timeout: 30,
+        method: 'post',
+        url: TOKEN_URI,
+        proxy: proxy,
+        headers: auth_header,
+        payload: { grant_type: 'client_credentials' }
+      )
       @client_token = JSON.parse(response)['access_token']
       true
     end
 
-    def authenticate_many(client_creds_hash)
+    def authenticate_many(client_creds_hash, proxy = nil)
       @client_token_store = []
       client_ids = client_creds_hash[:client_ids]
       client_secrets = client_creds_hash[:client_secrets]
-      
+
       client_ids.each_with_index do |current_id, idx|
         current_secret = client_secrets[idx]
-        authenticate(current_id, current_secret)
+        authenticate(current_id, current_secret, proxy)
         @client_token_store << @client_token
       end
-
     end
 
     VERBS.each do |verb|
-      define_method verb do |path, *params|
-        chosen_token = select_client_token
-        params << { 'Authorization' => "Bearer #{chosen_token}" } if chosen_token
-        send_request(verb, path, *params)
+      define_method verb do |path, proxy = nil|
+        send_request(verb, path, proxy)
       end
     end
 
@@ -74,52 +67,39 @@ module RSpotify
       @client_token_store[rand_idx]
     end
 
-    def send_request(verb, path, *params)
+    def send_request(verb, path, headers, proxy = nil)
+      chosen_token = select_client_token
+      headers = { 'Authorization' => "Bearer #{chosen_token}" } if chosen_token
       url = path.start_with?('http') ? path : API_URI + path
       url, query = *url.split('?')
       url = Addressable::URI.encode(url)
       url << "?#{query}" if query
 
       begin
-        headers = get_headers(params)
-        headers['Accept-Language'] = ENV['ACCEPT_LANGUAGE'] if ENV['ACCEPT_LANGUAGE']
-        response = RestClient::Request.execute(params.reduce(Hash.new, :merge).merge(
+        response = RestClient::Request.execute(
           method: verb,
           url: url,
-          proxy: nil
-        ))
+          proxy: proxy,
+          headers: headers
+        )
       rescue RestClient::Unauthorized => e
-        raise e if request_was_user_authenticated?(*params)
-
-        raise MissingAuthentication unless @client_token
-
-        authenticate(@client_id, @client_secret)
-
-        headers = get_headers(params)
-        headers['Authorization'] = "Bearer #{@client_token}"
-
-        response = retry_connection(verb, url, params)
+        raise e if request_was_user_authenticated?(headers)
+        raise MissingAuthentication
       end
 
       return response if raw_response
       JSON.parse(response) unless response.nil? || response.empty?
     end
 
-    # Added this method for testing
-    def retry_connection(verb, url, params)
-      RestClient.send(verb, url, *params)
-    end
-
-    def request_was_user_authenticated?(*params)
+    def request_was_user_authenticated?(headers)
       users_credentials = if User.class_variable_defined?('@@users_credentials')
         User.class_variable_get('@@users_credentials')
       end
 
-      headers = get_headers(params)
       if users_credentials
         creds = users_credentials.map{|_user_id, creds| "Bearer #{creds['token']}"}
 
-        if creds.include?(headers['Authorization'])
+        if creds.include?(headers.dig('Authorization'))
           return true
         end
       end
@@ -132,8 +112,5 @@ module RSpotify
       { 'Authorization' => "Basic #{authorization}" }
     end
 
-    def get_headers(params)
-      params.find{|param| param.is_a?(Hash) && param['Authorization']}
-    end
   end
 end
