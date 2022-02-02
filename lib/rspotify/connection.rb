@@ -47,15 +47,15 @@ module RSpotify
       end
     end
 
-    def resolve_auth_request(user_id, url)
+    def resolve_auth_request(user_id, url, proxy = nil)
       users_credentials = if User.class_variable_defined?('@@users_credentials')
         User.class_variable_get('@@users_credentials')
       end
 
       if users_credentials && users_credentials[user_id]
-        User.oauth_get(user_id, url)
+        User.oauth_get(user_id, url, proxy)
       else
-        get(url)
+        get(url, proxy)
       end
     end
 
