@@ -27,13 +27,13 @@ module RSpotify
     #           track = RSpotify::Track.find('2UzMpPKPhbcC8RbsmuURAZ')
     #           track.class #=> RSpotify::Track
     #           track.name  #=> "Do I Wanna Know?"
-    #           
+    #
     #           ids = %w(2UzMpPKPhbcC8RbsmuURAZ 7Jzsc04YpkRwB1zeyM39wE)
     #           tracks = RSpotify::Base.find(ids, 'track')
     #           tracks.class       #=> Array
     #           tracks.first.class #=> RSpotify::Track
-    def self.find(ids, market: nil)
-      super(ids, 'track', market: market)
+    def self.find(ids, market: nil, proxy: nil)
+      super(ids, 'track', market: market, proxy: proxy)
     end
 
     # Returns array of Track objects matching the query, ordered by popularity. It's also possible to find the total number of search results for the query
@@ -50,8 +50,8 @@ module RSpotify
     #           tracks = RSpotify::Track.search('Wanna Know', market: { from: user })
     #
     #           RSpotify::Track.search('Wanna Know').total #=> 3686
-    def self.search(query, limit: 20, offset: 0, market: nil)
-      super(query, 'track', limit: limit, offset: offset, market: market)
+    def self.search(query, limit: 20, offset: 0, market: nil, proxy: nil)
+      super(query, 'track', limit: limit, offset: offset, market: market, proxy: proxy)
     end
 
     # Retrieves the audio features for the track
