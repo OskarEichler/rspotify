@@ -23,37 +23,37 @@ module RSpotify
     #           tracks = RSpotify::Base.find(ids, 'track')
     #           tracks.class       #=> Array
     #           tracks.first.class #=> RSpotify::Track
-    def self.find(ids, type, market: nil)
+    def self.find(ids, type, market: nil, proxy: nil)
       case ids
       when Array
         if type == 'user'
           warn 'Spotify API does not support finding several users simultaneously'
           return false
         end
-        find_many(ids, type, market: market)
+        find_many(ids, type, market: market, proxy: proxy)
       when String
         id = ids
-        find_one(id, type, market: market)
+        find_one(id, type, market: market, proxy: proxy)
       end
     end
 
-    def self.find_many(ids, type, market: nil)
+    def self.find_many(ids, type, market: nil, proxy: nil)
       type_class = RSpotify.const_get(type.capitalize)
       path = "#{type}s?ids=#{ids.join ','}"
       path << "&market=#{market}" if market
 
-      response = RSpotify.get path
+      response = RSpotify.get(path, proxy)
       return response if RSpotify.raw_response
       response["#{type}s"].map { |t| type_class.new t if t }
     end
     private_class_method :find_many
 
-    def self.find_one(id, type, market: nil)
+    def self.find_one(id, type, market: nil, proxy: nil)
       type_class = RSpotify.const_get(type.capitalize)
       path = "#{type}s/#{id}"
       path << "?market=#{market}" if market
 
-      response = RSpotify.get path
+      response = RSpotify.get(path, proxy)
       return response if RSpotify.raw_response
       type_class.new response unless response.nil?
     end
@@ -88,7 +88,7 @@ module RSpotify
     #           albums  = RSpotify::Base.search('AM', 'album', market: { from: user })
     #
     #           RSpotify::Base.search('Arctic', 'album,artist,playlist').total #=> 2142
-    def self.search(query, types, limit: 20, offset: 0, market: nil)
+    def self.search(query, types, limit: 20, offset: 0, market: nil, proxy: nil)
       query = CGI.escape query
       types.gsub!(/\s+/, '')
 
@@ -100,7 +100,7 @@ module RSpotify
         User.oauth_get(market[:from].id, url)
       else
         url << "&market=#{market}" if market
-        RSpotify.get(url)
+        RSpotify.get(url, proxy)
       end
 
       return response if RSpotify.raw_response
