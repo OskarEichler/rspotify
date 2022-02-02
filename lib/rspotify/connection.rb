@@ -67,7 +67,7 @@ module RSpotify
       @client_token_store[rand_idx]
     end
 
-    def send_request(verb, path, headers, proxy = nil)
+    def send_request(verb, path, proxy = nil)
       chosen_token = select_client_token
       headers = { 'Authorization' => "Bearer #{chosen_token}" } if chosen_token
       url = path.start_with?('http') ? path : API_URI + path
