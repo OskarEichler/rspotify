@@ -20,8 +20,8 @@ module RSpotify
     #           user = RSpotify::User.find('wizzler')
     #           user.class #=> RSpotify::User
     #           user.id    #=> "wizzler"
-    def self.find(id)
-      super(id, 'user')
+    def self.find(id, proxy: nil)
+      super(id, 'user', proxy: proxy)
     end
 
     # Spotify does not support search for users.
