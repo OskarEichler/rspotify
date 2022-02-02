@@ -27,13 +27,13 @@ module RSpotify
     #           playlists = RSpotify::Playlist.browse_featured
     #           playlists = RSpotify::Playlist.browse_featured(locale: 'es_MX', limit: 10)
     #           playlists = RSpotify::Playlist.browse_featured(country: 'US', timestamp: '2014-10-23T09:00:00')
-    def self.browse_featured(limit: 20, offset: 0, **options)
+    def self.browse_featured(limit: 20, offset: 0, proxy: nil, **options)
       url = "browse/featured-playlists?limit=#{limit}&offset=#{offset}"
       options.each do |option, value|
         url << "&#{option}=#{value}"
       end
 
-      response = RSpotify.get(url)
+      response = RSpotify.get(url, proxy)
       return response if RSpotify.raw_response
       response['playlists']['items'].map { |i| Playlist.new i }
     end
@@ -49,12 +49,12 @@ module RSpotify
     #           playlist = RSpotify::Playlist.find('wizzler', '00wHcTN0zQiun4xri9pmvX')
     #           playlist.class #=> RSpotify::Playlist
     #           playlist.name  #=> "Movie Soundtrack Masterpieces"
-    def self.find(user_id, id, market: nil)
+    def self.find(user_id, id, market: nil, proxy: nil)
       url = "users/#{user_id}/"
       url << (id == 'starred' ? id : "playlists/#{id}")
       url << "?market=#{market}" if market
 
-      response = RSpotify.resolve_auth_request(user_id, url)
+      response = RSpotify.resolve_auth_request(user_id, url, proxy)
       return response if RSpotify.raw_response
       Playlist.new response
     end
