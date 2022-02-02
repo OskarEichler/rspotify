@@ -69,7 +69,7 @@ module RSpotify
     #           playlist = RSpotify::Playlist.find_by_id('00wHcTN0zQiun4xri9pmvX')
     #           playlist.class #=> RSpotify::Playlist
     #           playlist.name  #=> "Movie Soundtrack Masterpieces"
-    def self.find_by_id(id, market: nil, fields: nil)
+    def self.find_by_id(id, market: nil, fields: nil, proxy: nil)
       # Fields explanation from https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlist  :
       # Filters for the query: a comma-separated list of the fields to return. If omitted, all fields are returned.
 
@@ -105,8 +105,8 @@ module RSpotify
     #           playlists = RSpotify::Playlist.search('Indie', limit: 10)
     #
     #           RSpotify::Playlist.search('Indie').total #=> 14653
-    def self.search(query, limit: 20, offset: 0)
-      super(query, 'playlist', limit: limit, offset: offset)
+    def self.search(query, limit: 20, offset: 0, proxy: nil)
+      super(query, 'playlist', limit: limit, offset: offset, proxy: proxy)
     end
 
     def initialize(options = {})
