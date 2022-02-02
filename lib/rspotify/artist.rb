@@ -66,7 +66,7 @@ module RSpotify
     #           artist.albums
     #           artist.albums(album_type: 'single,compilation')
     #           artist.albums(limit: 50, country: 'US')
-    def albums(limit: 20, offset: 0, **filters, proxy: proxy)
+    def albums(limit: 20, offset: 0, proxy: proxy, **filters)
       url = "artists/#{@id}/albums?limit=#{limit}&offset=#{offset}"
       filters.each do |filter_name, filter_value|
         url << "&#{filter_name}=#{filter_value}"
