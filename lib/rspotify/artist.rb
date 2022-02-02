@@ -21,8 +21,8 @@ module RSpotify
     #           artists = RSpotify::Artist.find(ids)
     #           artists.class       #=> Array
     #           artists.first.class #=> RSpotify::Artist
-    def self.find(ids)
-      super(ids, 'artist')
+    def self.find(ids, proxy: nil)
+      super(ids, 'artist', proxy: proxy)
     end
 
     # Returns array of Artist objects matching the query, ordered by popularity. It's also possible to find the total number of search results for the query
