@@ -88,7 +88,7 @@ module RSpotify
       url = "playlists/#{id}?"
       url << "market=#{market}&" if market
       url << "fields=#{necessary_fields + fields}" if fields
-      response = RSpotify.resolve_auth_request(nil, url)
+      response = RSpotify.resolve_auth_request(nil, url, proxy)
       return response if RSpotify.raw_response
       Playlist.new response
     end
@@ -269,7 +269,7 @@ module RSpotify
     #           playlist = RSpotify::Playlist.find('wizzler', '00wHcTN0zQiun4xri9pmvX')
     #           playlist.tracks.first.name #=> "Main Theme from Star Wars - Instrumental"
 
-    def tracks(limit: 100, offset: 0, market: nil, fields: nil)
+    def tracks(limit: 100, offset: 0, market: nil, fields: nil, proxy: nil)
       last_track = offset + limit - 1
 
       if @tracks_cache && last_track < 100 && !RSpotify.raw_response
@@ -284,7 +284,7 @@ module RSpotify
       url << "market=#{market}&" if market
       url << "fields=#{necessary_fields + fields}" if fields
 
-      response = RSpotify.resolve_auth_request(nil, url)
+      response = RSpotify.resolve_auth_request(nil, url, proxy)
 
       json = RSpotify.raw_response ? JSON.parse(response) : response
       tracks = json['items'].select { |i| i['track'] }
