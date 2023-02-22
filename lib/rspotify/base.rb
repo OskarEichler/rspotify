@@ -108,7 +108,7 @@ module RSpotify
       types = types.split(',')
       result = types.flat_map do |type|
         type_class = RSpotify.const_get(type.capitalize)
-        response["#{type}s"]['items'].map { |i| type_class.new i }
+        response["#{type}s"]['items'].compact.map { |i| type_class.new i }
       end
 
       insert_total(result, types, response)
