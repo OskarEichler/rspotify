@@ -117,7 +117,7 @@ module RSpotify
       response = RSpotify.get(url, proxy)
       json = RSpotify.raw_response ? JSON.parse(response) : response
 
-      tracks = json['items'].map { |i| Track.new i }
+      tracks = json['items'].compact.map { |i| Track.new i }
       @tracks_cache = tracks if limit == 50 && offset == 0
       return response if RSpotify.raw_response
 
